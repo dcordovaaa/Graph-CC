@@ -1,0 +1,12 @@
+# Entorno y caché Backend
+backend/venv/
+backend/__pycache__/
+backend/.pytest_cache/
+
+# Dependencias y compilación Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Variables de entorno y configuraciones del SO
+.env
+.DS_Store
