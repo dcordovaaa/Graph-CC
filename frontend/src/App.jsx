@@ -28,32 +28,32 @@ function App() {
   // Escuchar los mensajes del backend para actualizar los colores de los nodos
   useEffect(() => {
     if (messages.length === 0) return;
-    
+
     const latestMessage = messages[messages.length - 1];
-    
+
     // Mostrar el texto de acción en el panel
     if (latestMessage.action) setStatusText(latestMessage.action);
-    
+
     if (latestMessage.status === 'finished') {
       setIsFinished(true);
     }
 
     // Actualizar colores basándose en la respuesta del backend
     if (latestMessage.node_colors) {
-      setNodes((nds) => 
+      setNodes((nds) =>
         nds.map((node) => {
           const color = latestMessage.node_colors[parseInt(node.id)];
-          
+
           // Si el nodo actual está en análisis (RF-08), lo pintamos amarillo
           if (latestMessage.current_node !== undefined && latestMessage.current_node.toString() === node.id) {
-             return { ...node, style: { ...nodeStyle, backgroundColor: '#ffeb3b' } };
+            return { ...node, style: { ...nodeStyle, backgroundColor: '#ffeb3b' } };
           }
-          
+
           // Si el nodo ya tiene un color de componente asignado (RF-09)
           if (color) {
             return { ...node, style: { ...nodeStyle, backgroundColor: color, color: '#fff' } };
           }
-          
+
           return node;
         })
       );
@@ -68,7 +68,7 @@ function App() {
   const handleGenerateGraph = (n, mode) => {
     // ... (Mismo código de generación de nodos y aristas de la Fase 3) ...
     // NOTA: Asegúrate de mantener aquí la lógica de distribución circular y aristas aleatorias
-    
+
     const newNodes = [];
     const newEdges = [];
     const radius = 150;
@@ -110,7 +110,7 @@ function App() {
       const u = parseInt(edge.source, 10);
       const v = parseInt(edge.target, 10);
       matrix[u][v] = 1;
-      matrix[v][u] = 1; 
+      matrix[v][u] = 1;
     });
     return matrix;
   };
@@ -118,7 +118,7 @@ function App() {
   const handleStartAlgorithm = () => {
     clearMessages();
     setIsFinished(false);
-    
+
     // Limpiamos los colores visuales antes de iniciar
     setNodes((nds) => nds.map(node => ({ ...node, style: { ...nodeStyle } })));
 
@@ -133,24 +133,45 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1000px', margin: '0 auto' }}>
-      <h2>Búsqueda de Componentes Conexas</h2>
-      <SetupPanel onGenerate={handleGenerateGraph} />
-      
-      {nodes.length > 0 && (
-        <>
-          <ControlPanel 
-            onStart={handleStartAlgorithm} 
-            onNext={handleNextStep} 
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1400px', margin: '0 auto', height: '95vh', display: 'flex', flexDirection: 'column' }}>
+      <h2 style={{ textAlign: 'center', margin: '0 0 20px 0' }}>Búsqueda de Componentes Conexas</h2>
+
+      {/* FILA SUPERIOR: Paneles de Configuración y Control */}
+      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginBottom: '20px' }}>
+        <SetupPanel onGenerate={handleGenerateGraph} />
+
+        {nodes.length > 0 && (
+          <ControlPanel
+            onStart={handleStartAlgorithm}
+            onNext={handleNextStep}
             statusText={statusText}
             isConnected={isConnected}
             isFinished={isFinished}
           />
-          <div style={{ display: 'flex', gap: '20px', flexDirection: 'column', marginTop: '20px' }}>
-            <GraphCanvas nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} />
+        )}
+      </div>
+
+      {/* FILA INFERIOR: Grafo y Matriz de Adyacencia (Lado a lado) */}
+      {nodes.length > 0 && (
+        <div style={{ display: 'flex', gap: '20px', flexDirection: 'row', flexGrow: 1, overflow: 'hidden' }}>
+
+          {/* El grafo tomará el doble de espacio visual (flex: 2) */}
+          <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+            <GraphCanvas
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+            />
+          </div>
+
+          {/* La matriz tomará el espacio restante (flex: 1) */}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
             <AdjacencyMatrix nodes={nodes} edges={edges} />
           </div>
-        </>
+
+        </div>
       )}
     </div>
   );
